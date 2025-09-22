@@ -58,6 +58,8 @@ def simplex(A: list, b: list, c: list, x0: list):
     indexRow = ['x' + str(value) for value in x0]
     indexRow.insert(0,'z')
 
+    # necessario incluir etapa de preparacao do tableau
+    
     tableau = pd.DataFrame(
         data= tableau,
         index= indexRow,
@@ -65,10 +67,10 @@ def simplex(A: list, b: list, c: list, x0: list):
     )
 
     for iterations in range(MAX_ITERATIONS):
-        # verifica se há valores positivos na linha zdo tableau
-        isOptimal = (tableau.loc['z'] < 0).any()
+        # verifica se há valores positivos na linha z do tableau
+        notOptimal = (tableau.loc['z'] < 0).any()
 
-        if isOptimal:
+        if notOptimal:
             # identifica a variavel que entra na base
             baseIn = tableau.loc['z'].idxmin()            
             
@@ -77,6 +79,26 @@ def simplex(A: list, b: list, c: list, x0: list):
             tableauCopy = tableau[filterValues].copy()
             
             baseOut = (tableauCopy['LD'] / tableauCopy[baseIn]).idxmin()
+
+            # deixa '1' na celula da nova variavel q entrou
+            if tableau.loc[baseOut, baseIn] > 1:
+                tableau.loc[baseOut] = tableau.loc[baseOut] / tableau.loc[baseOut, baseIn]
+
+            # transforma a coluna da variavel que entrou em uma coluna da matriz identidade
+            indexBaseIn = tableau.columns.get_loc(baseIn)
+            for row in tableau.itertuples():
+                if row.Index != baseOut:
+                    if row[indexBaseIn + 1]:
+                        multValue = -row[indexBaseIn + 1]
+                        tableau.loc[row.Index] = tableau.loc[row.Index] + (multValue * tableau.loc[baseOut])
+
+            # atualiza o label de linha da variavel q entrou
+            tableau.rename(
+                index= {baseOut: baseIn},
+                inplace= True
+            )
+
+
 
 
 
