@@ -30,7 +30,7 @@ def simplex(A: list, b: list, c: list, x0: list):
 
     b = np.array([0,4,15])
     c = np.array([1,3])
-    x0 = np.array([2,3,4])
+    x0 = np.array([3,4,5])
 
 
     # 1. Montar o tableau utilizando x0 como solução inicial
@@ -52,19 +52,28 @@ def simplex(A: list, b: list, c: list, x0: list):
 
     # 1.4. Adicionando índices de linhas e colunas
     columns = np.arange(0, aColumns, 1)
-    indexCol = ['x' + str(value) for value in columns]
+    indexCol = ['x' + str(value+1) for value in columns]
     indexCol.append('LD')
 
     indexRow = ['x' + str(value) for value in x0]
     indexRow.insert(0,'z')
-
-    # necessario incluir etapa de preparacao do tableau
     
     tableau = pd.DataFrame(
         data= tableau,
         index= indexRow,
         columns= indexCol
     )
+
+    # 1.5. Colocando o tableau na forma preparada
+    # para as colunas das variaveis basicas, verificar se são '1' na linha correspondente e '0' nas demais
+
+    for row in tableau.itertuples():
+        if row.Index is not 'z':
+            
+        pass
+            
+
+
 
     for iterations in range(MAX_ITERATIONS):
         # verifica se há valores positivos na linha z do tableau
