@@ -1,9 +1,13 @@
 import numpy as np
 import pandas as pd
+import matrizes as mt
+
+from itertools import combinations
 
 MAX_ITERATIONS  = 200
 BASEIN_COLOR    = 'green!10'
 BASEOUT_COLOR   = 'red!10'
+M_VALUE         = 100
 
 def verificaTablauPreparado(tableau):
     '''
@@ -76,8 +80,86 @@ def preparaTableau(tableau):
 
     return tableau
 
+def bigM(tableau):
+    '''
+    Parametros:
+    -----------
 
-def simplex(A: list, b: list, c: list, x0: list):
+    tableau:
+        matriz contendo o tableau sem solucao inicial factivel
+
+    
+    Return:
+    -------
+
+    bigMTableau:
+        df montado com colunas big-M adicionadas
+    '''
+    qtdVarAux       = tableau.shape[0] - 1
+    qtdCols         = tableau.shape[1]
+    indexCols       = ['x' + str(value + 1) for value in np.arange(0, qtdCols, 1)]
+    newColumns      = np.arange(0, qtdVarAux, 1)
+    indexNewCols    = ['M' + str(value+1) for value in newColumns]
+
+    bigMTableau = pd.DataFrame(
+        data= tableau,
+        columns= indexCols
+    )
+    
+    for i in range(len(indexNewCols)):
+        bigMCol = [0] * len(qtdVarAux)
+        bigMCol[i] = 1
+        bigMCol = np.vstack([-M_VALUE,bigMCol])
+        bigMTableau[indexNewCols[i]] = bigMCol
+
+    bigMIndex = np.append('z', indexNewCols)
+
+    bigMTableau.set_axis(bigMIndex, axis= 0, inplace= True)
+    
+    return bigMTableau
+
+def localizaBaseInicial(tableau):
+    '''
+    Parametros:
+    -----------
+
+    A:
+        matriz A de restrições. (Ax = b)
+
+    
+    Return:
+    -------
+    x0:
+        lista contendo as variáveis da base inicial factível
+
+    '''
+    A = tableau.drop('z', axis= 0)
+
+    a_columns = A.shape[1]
+    a_rows = A.shape[0]
+
+    # filtro de conteudo. desconsidera colunas que contenham valores diferentes de 0 ou 1
+    colsBool = A.apply(lambda col: col.isin([0,1])).all(axis= 0)
+    contentFiltered = A.loc[:, colsBool]
+
+    # filtro de soma nas colunas. desconsidera colunas cuja soma seja diferente de 1
+    filterColumns = contentFiltered.sum() == 1
+    colsSumFilter = contentFiltered.loc[filterColumns]
+    basePossibilities = colsSumFilter.columns
+
+    if len(colsSumFilter) == a_rows and colsSumFilter.shape[1] >= a_rows:
+        # realizar combinações entre as colunas verificando se a soma das linhas tambem é 1
+        for x0 in combinations(basePossibilities, a_rows):
+            iPos = colsSumFilter[list(x0)]
+
+            # filtro de linha. cada linha deve somar 1
+            if (iPos.sum(axis= 1) == 1).all():
+                return x0
+    
+    else:
+        return False
+
+def simplex(A: list, b: list, c: list, x0: list = None):
     '''
     Parametros:
     -----------
@@ -95,17 +177,17 @@ def simplex(A: list, b: list, c: list, x0: list):
     # 4. mostrar o grafico com a regiao factivel e a sequencia de pontos utilizados durante a solução do problema
 
     # Matrizes de teste
-    A = np.array([
-        [-2,0,3,1,0,0,0,0],
-        [2,1,2,0,1,0,0,0],
-        [0,-1,3,0,0,1,0,0],
-        [3,3,0,0,0,0,1,0],
-        [1,-1,-3,0,0,0,0,1]    
-    ])
+    # A = np.array([
+    #     [-2,0,3,1,0,0,0,0],
+    #     [2,1,2,0,1,0,0,0],
+    #     [0,-1,3,0,0,1,0,0],
+    #     [3,3,0,0,0,0,1,0],
+    #     [1,-1,-3,0,0,0,0,1]    
+    # ])
 
-    b = np.array([6,7,7,8,9])
-    c = np.array([-2,0,-3])
-    x0 = np.array([4,5,6,7,8])
+    # b = np.array([6,7,7,8,9])
+    # c = np.array([-2,0,-3])
+    # x0 = np.array([4,5,6,7,8])
 
 
     # 1. Montar o tableau utilizando x0 como solução inicial
@@ -126,19 +208,40 @@ def simplex(A: list, b: list, c: list, x0: list):
     tableau = np.hstack([tableau, b])
 
     # 1.4. Adicionando índices de linhas e colunas
+
     columns = np.arange(0, aColumns, 1)
     indexCol = ['x' + str(value+1) for value in columns]
     indexCol.append('LD')
-    labelBase = ['x' + str(value+1) for value in x0]
-
-    indexRow = ['x' + str(value) for value in x0]
-    indexRow.insert(0,'z')
     
-    tableau = pd.DataFrame(
-        data= tableau,
-        index= indexRow,
-        columns= indexCol
-    )
+    # aqui deve verificar se existe x0. se não existe, tentar identificar a base
+    # se nao conseguir, aplicar Big-M
+    if not x0:
+        x0 = localizaBaseInicial(tableau)
+        
+        if x0 == False:
+            tableau = bigM(tableau)
+
+        else:
+            labelBase = ['x' + str(value+1) for value in x0]
+            indexRow = ['x' + str(value) for value in x0]
+            indexRow.insert(0,'z')
+    
+        tableau = pd.DataFrame(
+            data= tableau,
+            index= indexRow,
+            columns= indexCol
+        )
+
+    else:      
+        labelBase = ['x' + str(value+1) for value in x0]
+        indexRow = ['x' + str(value) for value in x0]
+        indexRow.insert(0,'z')
+    
+        tableau = pd.DataFrame(
+            data= tableau,
+            index= indexRow,
+            columns= indexCol
+        )
 
     dictColumns = {rotulo:indice for indice, rotulo in enumerate(tableau.columns)}
 
@@ -204,12 +307,14 @@ def simplex(A: list, b: list, c: list, x0: list):
                 f'\n{rowColor} {baseOut}'
             )
 
+A = [mt.A1, mt.A2, mt.A3, mt.A4, mt.A5, mt.A6]
+b = [mt.b1, mt.b2, mt.b3, mt.b4, mt.b5, mt.b6]
+c = [mt.c1, mt.c2, mt.c3, mt.c4, mt.c5, mt.c6]
+x0 = [mt.base1, mt.base2, mt.base3, mt.base4, mt.base5, mt.base6]
 
-
-
-
-
-
-    
-    
-
+for i in range(len(A)):
+    simplex(
+        A= A[i],
+        b= b[i],
+        c= c[i]
+    )
