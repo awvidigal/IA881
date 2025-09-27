@@ -9,7 +9,7 @@ BASEIN_COLOR    = 'green!10'
 BASEOUT_COLOR   = 'red!10'
 M_VALUE         = 100
 
-def verificaTablauPreparado(tableau):
+def verificaTableauPreparado(tableau):
     '''
     Parametros:
     -----------
@@ -69,14 +69,19 @@ def preparaTableau(tableau):
 
 
     for var in base:
-        if tableau.loc[var,var] > 1:
+        if tableau.loc[var,var] != 1:
             tableau.loc[var] = tableau.loc[var] / tableau.loc[var,var]
 
-        for row in tableau.itertuples():
-            if row.Index != var:
-                if row[dictColumns[var] + 1]:
-                    multValue = -row[dictColumns[var] + 1]
-                    tableau.loc[row.Index] = tableau.loc[row.Index] + (multValue * tableau.loc[var])
+        for rowIndex in tableau.index:
+            if rowIndex != var and rowIndex != 'z':
+                pivotValue = tableau.loc[rowIndex, var]
+                if pivotValue != 0:
+                    multValue = -pivotValue
+                    tableau.loc[rowIndex] = tableau.loc[rowIndex] + (multValue * tableau.loc[var])
+
+        if tableau.loc['z', var] != 0:
+            multValue = -tableau.loc['z', var]
+            tableau.loc['z'] = tableau.loc['z'] + (tableau.loc[var] * multValue)            
 
     return tableau
 
@@ -97,26 +102,26 @@ def bigM(tableau):
     '''
     qtdVarAux       = tableau.shape[0] - 1
     qtdCols         = tableau.shape[1]
-    indexCols       = ['x' + str(value + 1) for value in np.arange(0, qtdCols, 1)]
+    # indexCols       = ['x' + str(value + 1) for value in np.arange(0, qtdCols, 1)]
     newColumns      = np.arange(0, qtdVarAux, 1)
     indexNewCols    = ['M' + str(value+1) for value in newColumns]
 
-    bigMTableau = pd.DataFrame(
-        data= tableau,
-        columns= indexCols
-    )
+    ldColumn = tableau['LD']
+    tableau = tableau.drop(columns= ['LD'])
     
     for i in range(len(indexNewCols)):
-        bigMCol = [0] * len(qtdVarAux)
-        bigMCol[i] = 1
-        bigMCol = np.vstack([-M_VALUE,bigMCol])
-        bigMTableau[indexNewCols[i]] = bigMCol
+        bigMCol = np.zeros(qtdVarAux + 1)
+        bigMCol[0] = -M_VALUE
+        bigMCol[i + 1] = 1
+        tableau[indexNewCols[i]] = bigMCol
+
+    tableau['LD'] = ldColumn
 
     bigMIndex = np.append('z', indexNewCols)
 
-    bigMTableau.set_axis(bigMIndex, axis= 0, inplace= True)
+    tableau = tableau.set_axis(bigMIndex, axis= 0)
     
-    return bigMTableau
+    return tableau
 
 def localizaBaseInicial(tableau):
     '''
@@ -129,11 +134,11 @@ def localizaBaseInicial(tableau):
     
     Return:
     -------
-    x0:
-        lista contendo as variáveis da base inicial factível
+    tableau:
+        df alterado com as tags das variaveis de base nas linhas
 
     '''
-    A = tableau.drop('z', axis= 0)
+    A = tableau.drop('z')
 
     a_columns = A.shape[1]
     a_rows = A.shape[0]
@@ -144,7 +149,7 @@ def localizaBaseInicial(tableau):
 
     # filtro de soma nas colunas. desconsidera colunas cuja soma seja diferente de 1
     filterColumns = contentFiltered.sum() == 1
-    colsSumFilter = contentFiltered.loc[filterColumns]
+    colsSumFilter = contentFiltered.loc[:, filterColumns]
     basePossibilities = colsSumFilter.columns
 
     if len(colsSumFilter) == a_rows and colsSumFilter.shape[1] >= a_rows:
@@ -154,7 +159,11 @@ def localizaBaseInicial(tableau):
 
             # filtro de linha. cada linha deve somar 1
             if (iPos.sum(axis= 1) == 1).all():
-                return x0
+                x0 = iPos.idxmax(axis=1).tolist()
+                indexRows = ['z'] + x0
+                tableau = tableau.set_axis(indexRows, axis= 0)
+                return tableau
+
     
     else:
         return False
@@ -191,7 +200,7 @@ def simplex(A: list, b: list, c: list, x0: list = None):
 
 
     # 1. Montar o tableau utilizando x0 como solução inicial
-    
+    # isPrepared = False
     # 1.1. Ajuste do vetor c
     aColumns = A.shape[1]
     cColumns = c.shape[0]
@@ -212,26 +221,28 @@ def simplex(A: list, b: list, c: list, x0: list = None):
     columns = np.arange(0, aColumns, 1)
     indexCol = ['x' + str(value+1) for value in columns]
     indexCol.append('LD')
+
+    tableau = pd.DataFrame(
+        data= tableau,
+        columns= indexCol
+    )
+    renameZ = {0: 'z'}
+    tableau.rename(index= renameZ, inplace= True)
     
     # aqui deve verificar se existe x0. se não existe, tentar identificar a base
     # se nao conseguir, aplicar Big-M
     if not x0:
-        x0 = localizaBaseInicial(tableau)
+        baseResult = localizaBaseInicial(tableau)
         
-        if x0 == False:
+        if baseResult is False:
             tableau = bigM(tableau)
+            # isPrepared = True
 
         else:
-            labelBase = ['x' + str(value+1) for value in x0]
-            indexRow = ['x' + str(value) for value in x0]
-            indexRow.insert(0,'z')
+            tableau = baseResult
+        
+        indexRow = tableau.index.tolist()
     
-        tableau = pd.DataFrame(
-            data= tableau,
-            index= indexRow,
-            columns= indexCol
-        )
-
     else:      
         labelBase = ['x' + str(value+1) for value in x0]
         indexRow = ['x' + str(value) for value in x0]
@@ -243,12 +254,18 @@ def simplex(A: list, b: list, c: list, x0: list = None):
             columns= indexCol
         )
 
+    print(tableau)
+    print('\n')
+
     dictColumns = {rotulo:indice for indice, rotulo in enumerate(tableau.columns)}
 
     # 1.5. Colocando o tableau na forma preparada
-    if not verificaTablauPreparado(tableau):
+    if not verificaTableauPreparado(tableau):
         tableau = preparaTableau(tableau)
 
+    print('Tableau preparado:')
+    print(tableau)
+    print('\n')
     # 1.6. Resolvendo o tableau
     for iterations in range(MAX_ITERATIONS):
         # verifica se há valores positivos na linha z do tableau
@@ -262,7 +279,7 @@ def simplex(A: list, b: list, c: list, x0: list = None):
             filterValues = tableau[baseIn] > 0
             
             if (filterValues == False).all():
-                print('O problema é ilimitado')
+                print('O problema é ilimitado\n')
                 break
             
             tableauCopy = tableau[filterValues].copy()
@@ -270,16 +287,17 @@ def simplex(A: list, b: list, c: list, x0: list = None):
             baseOut = (tableauCopy['LD'] / tableauCopy[baseIn]).idxmin()
 
             # deixa '1' na celula da nova variavel q entrou
-            if tableau.loc[baseOut, baseIn] > 1:
+            if tableau.loc[baseOut, baseIn] != 1:
                 tableau.loc[baseOut] = tableau.loc[baseOut] / tableau.loc[baseOut, baseIn]
 
             # transforma a coluna da variavel que entrou em uma coluna da matriz identidade
             indexBaseIn = tableau.columns.get_loc(baseIn)
-            for row in tableau.itertuples():
-                if row.Index != baseOut:
-                    if row[indexBaseIn + 1]:
-                        multValue = -row[indexBaseIn + 1]
-                        tableau.loc[row.Index] = tableau.loc[row.Index] + (multValue * tableau.loc[baseOut])
+            for rowIndex in tableau.index:
+                if rowIndex != baseOut:
+                    pivotValue = tableau.loc[rowIndex, baseIn]
+                    if pivotValue != 0:
+                        multValue = -pivotValue
+                        tableau.loc[rowIndex] = tableau.loc[rowIndex] + (multValue * tableau.loc[baseOut])
 
             # atualiza o label de linha da variavel q entrou
             tableau.rename(
@@ -287,25 +305,29 @@ def simplex(A: list, b: list, c: list, x0: list = None):
                 inplace= True
             )
 
+            print(f'Iteração {iterations + 1}:')
+            print(tableau)
+            print('\n')
+
             # formatando a saida em latex
-            baseFormat = ['c'] * (len(tableau.columns) + 1)
-            baseFormat[0] = 'l'
-            colorCol = f'>{{\\columncolor{{{BASEIN_COLOR}}}}}c' 
-            baseFormat[indexBaseIn] = colorCol
-            latexFormat = ' '.join(baseFormat)
+                # baseFormat = ['c'] * (len(tableau.columns) + 1)
+                # baseFormat[0] = 'l'
+                # colorCol = f'>{{\\columncolor{{{BASEIN_COLOR}}}}}c' 
+                # baseFormat[indexBaseIn] = colorCol
+                # latexFormat = ' '.join(baseFormat)
 
-            latex = tableau.to_latex(
-                column_format= latexFormat,
-                booktabs = False,
-                escape= False
-            )
+                # latex = tableau.to_latex(
+                #     column_format= latexFormat,
+                #     booktabs = False,
+                #     escape= False
+                # )
 
-            rowColor = f'\\rowcolor{{{BASEOUT_COLOR}}}'
-            
-            latex = latex.replace(
-                baseOut,
-                f'\n{rowColor} {baseOut}'
-            )
+                # rowColor = f'\\rowcolor{{{BASEOUT_COLOR}}}'
+                
+                # latex = latex.replace(
+                #     baseOut,
+                #     f'\n{rowColor} {baseOut}'
+                # )
 
 A = [mt.A1, mt.A2, mt.A3, mt.A4, mt.A5, mt.A6]
 b = [mt.b1, mt.b2, mt.b3, mt.b4, mt.b5, mt.b6]
