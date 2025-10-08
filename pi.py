@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matrizes as mt
 
+M = 1000
+
 def PAE(A, b, c, epsilon, alfa):
     '''
     Função que executa o algoritmo Primal Afim Escala para otimização do problema de otimização
@@ -44,7 +46,24 @@ def PAE(A, b, c, epsilon, alfa):
         valor ótimo encontrado
     '''
 
-    # 1. Reformular para enontrar sol. inicial factível usando big-M
+    A = np.array(A)
+    b = np.array(b)
+    c = np.array(c)
+
+    x = np.ones(shape= A.shape[1])
+    e = np.ones(shape= A.T)
+
+
+    # 1. Reformular para encontrar sol. inicial factível usando big-M
+    # 1.1. Alterando os vetores A e c
+    c = np.append(c, M)
+
+    apendiceA = b - A*e
+
+    A = np.append(A, )
+
+    
+
     # 2. Calcular as estimativas duais como: wk = (AXk²AT)^-1 * AXk²c
     # 3. Calcular os custos reduzidos rk = c-AT*wk
     # 4. Verificar se os testes defolga complementar e de factibilidade dual estao dentro da tolrancia epsilon
