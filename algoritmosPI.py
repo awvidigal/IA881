@@ -1,3 +1,4 @@
+from re import X
 import numpy as np
 
 M = 1000
@@ -160,27 +161,107 @@ def PAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
             print('Deu erraduuuu')
             return retorno
         
-def DAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
+def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
+    '''
+    Função que executa o algoritmo Dual Afim Escala para otimização do problema de otimização
+    
+    min c'x
+    s.a. Ax = b
+    x >= 0
+
+    Utilizando o método de pontos interiores.
+    
+    Parâmetros
+    ----------
+    A: 
+        matriz relacionada às restrições
+
+    b: 
+        vetor de igualdade das restrições
+
+    c: 
+        vetor de coeficientes da função objetivo
+
+    w0:
+        solucao inicial factivel w
+
+    s0:
+        solucao incial factivel s
+
+    epsilon: 
+        valor de precisão que define qual a tolerância para entender se chegamos na solução ótima
+
+    alfa: 
+        limitador de passo
+
+    Retorno
+    -------
+    s:
+        vetor que contem os valores das variáveis de s1 a sn
+
+    sigmaC:
+        teste de folga complementar
+
+    solucao:
+        valor ótimo da função objetivo
+    '''  
+    # 1. Preparação do problema
+    A = np.array(A)
+    b = np.array(b)
+    c = np.array(c)
+    
+    if A.ndim == 1:
+        A = A.reshape(1, -1)
+
+    k = 0
+    dw  = []
+    ds  = []
+    x   = []
+    sigmaC = []
+    # 1.1. Formular o problema dual
+    # 1.1.1. Inicializando os vetores w e s com a solucao inicial factivel
+    w = np.array(w0)
+    s = np.array(s0)
+
+    solucao = [w,s]
+    retorno = [s, sigmaC, solucao]
+
+    # 2. Inicio das iterações
+    while True:
+        # 2.1. Calcular as direcoes dw[k] = (AS[k]^-2)^-1@b e ds[k] = -A.T@dw[k]
+        S = np.diag(s)
+        SInv2 = np.linalg.inv(S)@np.linalg.inv(S)
+        dw.append(
+            np.linalg.inv(A@SInv2@A.T)@b
+        )
+
+        ds.append(
+            -A.T@dw[k]
+        )
+
+        # 2.2. Verificar se ds[k] >=0. Dual ilimitado, caso sim
+        if (ds[k] >= 0).all():
+            print('Problema dual ilimitado ou múltiplas soluções ótimas')
+            return retorno
+        
+        # 2.3. Calcular a estimativa primal x[k] = -S[k]^-2@ds[k]
+        x.append(
+            -SInv2@ds[k]
+        )
+
+        # 2.4. Verificar se x[k] >= 0 e sigmaC <= epsilon. Condição de parada
+        if x[k] >= 0 and sigmaC <= epsilon:
+            print('Solucão ótima encontrada')
+            return retorno
+        
+        # 2.5. Determinar o tamanho do passo betaK
+        betaK = min(alfa)
+        
+        # 2.6. Atualizar a solução (w[k+1], s[k+1])
+
+    
     pass
 
-
-# ************************************************************************
-A = [0.5, 1, 1]
-c = [-90, -150, 0]
-b = 3
-
-solucao = PAE(A, b, c)
-otimo = [lista[-1] for lista in solucao]
-
-x = otimo[0][:-1]
-sigmaC = otimo[1]
-sigmaD = otimo[2]
-solucaoOtima = -otimo[3]
-
-xOtimo = enumerate(x)
-for item in xOtimo:
-    print(f'x{item[0]}: {item[1]}')
-
-print(f'sigmaC: {sigmaC}')
-print(f'sigmaD: {sigmaD}')
-print(f'Solucao ótima: {solucaoOtima}')
+def PDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
+    
+    pass
