@@ -161,7 +161,7 @@ def PAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
             print('Deu erraduuuu')
             return retorno
         
-def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
+def DAE(A, b, c, w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.95):
     '''
     Função que executa o algoritmo Dual Afim Escala para otimização do problema de otimização
     
@@ -199,11 +199,15 @@ def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
     s:
         vetor que contem os valores das variáveis de s1 a sn
 
+    w:
+        vetor que contem os valores das variaveis de w1 a wn
+
+    x:
+        vetor de estimativas primais
+
     sigmaC:
         teste de folga complementar
 
-    solucao:
-        valor ótimo da função objetivo
     '''  
     # 1. Preparação do problema
     A = np.array(A)
@@ -220,6 +224,9 @@ def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
     sigmaC = []
     # 1.1. Formular o problema dual
     # 1.1.1. Inicializando os vetores w e s com a solucao inicial factivel
+    if not w0 or not s0:
+        w0, s0 = solucaoInicialDAE(A, b, c)
+    
     w = np.array(w0)
     s = np.array(s0)
 
@@ -242,7 +249,7 @@ def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
         # 2.2. Verificar se ds[k] >=0. Dual ilimitado, caso sim
         if (ds[k] >= 0).all():
             print('Problema dual ilimitado ou múltiplas soluções ótimas')
-            return retorno
+            return s, w, x, sigmaC
         
         # 2.3. Calcular a estimativa primal x[k] = -S[k]^-2@ds[k]
         x.append(
@@ -252,15 +259,87 @@ def DAE(A, b, c, w0, s0, epsilon = 1e-3, alfa = 0.95):
         # 2.4. Verificar se x[k] >= 0 e sigmaC <= epsilon. Condição de parada
         if x[k] >= 0 and sigmaC <= epsilon:
             print('Solucão ótima encontrada')
-            return retorno
+            return s, w, x, sigmaC
         
         # 2.5. Determinar o tamanho do passo betaK
-        betaK = min(alfa)
-        
-        # 2.6. Atualizar a solução (w[k+1], s[k+1])
+        dsNegIndex = [[indice, valor] for indice, valor in enumerate(ds[k]) if valor < 0]
+        dsneg = [valor[1] for valor in dsNegIndex]
+        siNeg = [s[indice[0]].item() for indice in dsNegIndex]
 
-    
-    pass
+        betaK = min(alfa*(siNeg/-dsneg))
+
+        # 2.6. Atualizar a solução (w[k+1], s[k+1])
+        w = np.append(w, w[k] + betaK * dw[k])
+        s = np.append(s, s[k] + betaK * ds[k])
+
+        k += 1
+
+def solucaoInicialDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
+    '''
+    Função que busca o valor inicial factível para o algoritmo DAE utilizando a técnica do Big-M
+        
+    min c'x         !->  max b'w             !->  max b'w + Mwa
+    s.a. Ax = b     !->  s.a. A'w + s = c    !->  s.a. A'w + pwa + s = c
+    x >= 0          !->  s >= 0              !->  s >= 0
+
+    Parâmetros
+    ----------
+    A: 
+        matriz relacionada às restrições
+
+    b: 
+        vetor de igualdade das restrições
+
+    c: 
+        vetor de coeficientes da função objetivo
+
+    epsilon: 
+        valor de precisão que define qual a tolerância para entender se chegamos na solução ótima
+
+    alfa: 
+        limitador de passo
+
+    Retorno
+    -------
+    w0:
+        solução inicial factível para w
+
+    s0:
+        solução inicial factível para s
+    '''
+
+    A = np.array(A)
+    b = np.array(b)
+    c = np.array(c)
+
+    # 1. Preparação
+    # 1.1. Alterando o vetor b para incluir o bigM
+    b = np.append(b, M)
+
+    # 1.2. Criando o vetor p
+    p = [1 if valor <= 0 else 0 for valor in c]
+
+    # 1.3. Inicializando vetor w0
+    w0 = np.zeros(shape= A.shape[0] + 1)
+
+    # 1.4. Definindo variavel artificial inicial
+    cBarra = np.max(np.abs(c))
+    teta = 2
+    w0[-1] = -teta*cBarra
+
+    # 1.5. Variaveis de folga iniciais
+    s   = np.zeros(shape= c.shape)
+    s0  = c + teta*cBarra*p
+
+    # 2. Executa DAE
+    solucao = DAE(A, b, c, w0, s0)
+
+    w0 = solucao[2][0]
+    s0 = solucao[2][1]
+
+    return [w0,s0]
+
+
 
 def PDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
     
