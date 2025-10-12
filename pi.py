@@ -8,8 +8,12 @@ A = [0.5, 1, 1]
 c = [-90, -150, 0]
 b = 3
 
+# A = [1, 1]
+# b = [1]
+# c = [-2, 1]
+
 solucao = PAE(A, b, c)
-otimo = [lista[-1] for lista in solucao]
+otimo = [lista[-1] if lista else 0 for lista in solucao]
 
 x = otimo[0][:-1]
 sigmaC = otimo[1]

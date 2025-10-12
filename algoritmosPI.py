@@ -86,7 +86,7 @@ def PAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
         X2 = np.diag(x[k]**2)
         # 2.2. Cálculo de wk
         w.append(
-            np.linalg.inv(A@(X@X)@(A.T)) @ A@(X@X)@c
+            np.linalg.inv(A@X2@(A.T)) @ A@X2@c
         )
 
         # 3. Calcular os custos reduzidos rk = c-AT*wk
@@ -113,7 +113,8 @@ def PAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
                 rNegIndex.append([indice, valor]) 
 
         if not rNegIndex:
-            break # o que acontece se for tudo positivo? problema infactivel?
+            print('Problema ilimitado ou com múltiplas soluções ótimas')
+            return retorno
 
         else:
             rNeg = [valor[1] for valor in rNegIndex]
@@ -350,8 +351,72 @@ def solucaoInicialDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
 
     return [w0,s0]
 
+def PDAE(A, b, c, x0 = [], w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.99, sigmaMu = 0.85):
+    '''
+    Função que busca o valor inicial factível para o algoritmo PDAE
+        
+    min c'x         
+    s.a. Ax = b
+    x >= 0
 
+    Parâmetros
+    ----------
+    A: 
+        matriz relacionada às restrições
 
-def PDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
+    b: 
+        vetor de igualdade das restrições
+
+    c: 
+        vetor de coeficientes da função objetivo
+
+    x0:
+        solução inicial para x
+
+    w0:
+        solução inicial para w
+
+    s0:
+        solução inicial para s
     
-    pass
+    epsilon: 
+        valor de precisão que define qual a tolerância para os critérios de parada
+
+    alfa: 
+        limitador de passo
+
+    sigmaMu:
+        limitador da penalidade associada a barreira logarítmica
+
+    Retorno
+    -------
+    x:
+        valores ótimos de x
+
+    w:
+        valores ótimos de w
+
+    mu:
+        valore ótimo de mu
+    
+    sigmaP:
+        factibilidade primal
+
+    sigmaD:
+        fatibilidade dual
+
+    solPrimal:
+        solucão ótima primal
+
+    solDual:
+        solução ótima dual
+    '''
+
+    # 1. Preparação do problema
+    # 2. Início das iterações
+    # 2.1. Calculando:
+    # 2.1.1. mu[k] = sigmaMu(x[k]).T s[k]/n  (n é o tamanho de x = tamanho de c)
+    # 2.1.2. t[k] = b - Ax[k]
+    # 2.1.3. u[k] = c - A.Tw[k] - s[k]
+    # 2.1.4. v[k] = mu[k]e - XSe
+    # 2.1.5. p[k] = X^-1v[k]
