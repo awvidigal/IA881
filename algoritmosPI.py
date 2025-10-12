@@ -208,10 +208,13 @@ def DAE(A, b, c, w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.95):
     sigmaC:
         teste de folga complementar
 
+    solucaoOtima:
+        valor da função objetivo no ponto ótimo
+
     '''  
     # 1. Preparação do problema
     A = np.array(A)
-    b = np.array(b)
+    b = np.array(b).reshape(-1,1)
     c = np.array(c)
     
     if A.ndim == 1:
@@ -222,13 +225,14 @@ def DAE(A, b, c, w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.95):
     ds  = []
     x   = []
     sigmaC = []
+    solucaoOtima = []
     # 1.1. Formular o problema dual
     # 1.1.1. Inicializando os vetores w e s com a solucao inicial factivel
     if not w0 or not s0:
         w0, s0 = solucaoInicialDAE(A, b, c)
     
-    w = np.array(w0)
-    s = np.array(s0)
+    w = [np.array(w0)]
+    s = [np.array(s0)]
 
     solucao = [w,s]
     retorno = [s, sigmaC, solucao]
@@ -236,7 +240,7 @@ def DAE(A, b, c, w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.95):
     # 2. Inicio das iterações
     while True:
         # 2.1. Calcular as direcoes dw[k] = (AS[k]^-2)^-1@b e ds[k] = -A.T@dw[k]
-        S = np.diag(s)
+        S = np.diag(s[k])
         SInv2 = np.linalg.inv(S)@np.linalg.inv(S)
         dw.append(
             np.linalg.inv(A@SInv2@A.T)@b
@@ -251,26 +255,36 @@ def DAE(A, b, c, w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.95):
             print('Problema dual ilimitado ou múltiplas soluções ótimas')
             return s, w, x, sigmaC
         
-        # 2.3. Calcular a estimativa primal x[k] = -S[k]^-2@ds[k]
+        # 2.3. Calcular a estimativa primal x[k] = -S[k]^-2@ds[k] e o gap de dualidade
         x.append(
             -SInv2@ds[k]
         )
 
+        sigmaC.append(
+            c@x[k] - b.reshape(1,-1)@w[k]
+        )
+
         # 2.4. Verificar se x[k] >= 0 e sigmaC <= epsilon. Condição de parada
-        if x[k] >= 0 and sigmaC <= epsilon:
+        if (x[k] >= 0).all() and sigmaC[k] <= epsilon:
             print('Solucão ótima encontrada')
-            return s, w, x, sigmaC
+            return s, w, x, sigmaC, solucaoOtima
         
         # 2.5. Determinar o tamanho do passo betaK
         dsNegIndex = [[indice, valor] for indice, valor in enumerate(ds[k]) if valor < 0]
-        dsneg = [valor[1] for valor in dsNegIndex]
-        siNeg = [s[indice[0]].item() for indice in dsNegIndex]
+        dsNeg = [valor[1] for valor in dsNegIndex]
+        siNeg = [s[k][indice[0]].item() for indice in dsNegIndex]
 
-        betaK = min(alfa*(siNeg/-dsneg))
+        dsNeg = np.array(dsNeg)
+        siNeg = np.array(siNeg)
+
+        betaK = np.min(alfa*(siNeg/-dsNeg))
 
         # 2.6. Atualizar a solução (w[k+1], s[k+1])
-        w = np.append(w, w[k] + betaK * dw[k])
-        s = np.append(s, s[k] + betaK * ds[k])
+        w.append(w[k] + betaK * dw[k])
+        s.append(s[k] + betaK * ds[k].flatten())
+        # w = np.append(w, w[k] + betaK * dw[k])
+        # s = np.append(s, s[k] + betaK * ds[k])
+        solucaoOtima.append(b.T@w[k])
 
         k += 1
 
@@ -332,10 +346,7 @@ def solucaoInicialDAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
     s0  = c + teta*cBarra*p
 
     # 2. Executa DAE
-    solucao = DAE(A, b, c, w0, s0)
-
-    w0 = solucao[2][0]
-    s0 = solucao[2][1]
+    s0, w0, _, _, _ = DAE(A, b, c, w0, s0)
 
     return [w0,s0]
 

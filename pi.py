@@ -17,13 +17,37 @@ sigmaD = otimo[2]
 solucaoOtima = -otimo[3]
 
 xOtimo = enumerate(x)
+
+print('Solução Algoritmo PAE')
 for item in xOtimo:
     print(f'x{item[0]}: {item[1]}')
 
-print('Solução Algoritmo PAE')
 print(f'sigmaC: {sigmaC}')
 print(f'sigmaD: {sigmaD}')
 print(f'Solucao ótima: {solucaoOtima}')
+print(' ')
 
-solucao = DAE(A, b, c,)
+solucao = DAE(A, b, c, [-250], [35,100,250])
 otimo = [lista[-1] for lista in solucao]
+s = otimo[0]
+w = otimo[1]
+x = otimo[2]
+sigmaC = otimo[3]
+solucaoOtima = otimo[4]
+
+sOtimo = enumerate(s)
+wOtimo = enumerate(w)
+xOtimo = enumerate(x)
+
+print('Solução algoritmo DAE')
+for item in sOtimo:
+    print(f's{item[0]}: {item[1]}')
+
+for item in wOtimo:
+    print(f'w{item[0]}: {item[1]}')
+
+for item in xOtimo:
+    print(f'x{item[0]}: {item[1]}')
+
+print(f'SigmaC: {sigmaC}')
+print(f'Solucao ótima: {solucaoOtima}')
