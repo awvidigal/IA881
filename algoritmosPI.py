@@ -1,3 +1,4 @@
+from ctypes.wintypes import DWORD
 from re import X
 import numpy as np
 
@@ -413,10 +414,86 @@ def PDAE(A, b, c, x0 = [], w0 = [], s0 = [], epsilon = 1e-3, alfa = 0.99, sigmaM
     '''
 
     # 1. Preparação do problema
+    A = np.array(A)
+    b = np.array(b)
+    c = np.array(c)
+
+    if A.ndim == 1:
+        A = A.reshape(1, -1)
+
+    k = 0
+
+    mu  = []
+    t   = []
+    u   = []
+    v   = []
+    p   = []
+    dx  = []
+    dw  = []
+    ds  = []
+
+    sigmaP = []
+    sigmaD = []
+
+    n = c.size
+
+    if not x0:
+        x0 = np.ones(shape= c.shape)
+
+    if not w0:
+        w0 = np.zeros(shape= c.shape)
+
+    if not s0:
+        s0 = np.ones(shape= c.shape)
+
+    e = np.ones(shape= x.shape)
+    
+    x = np.array[[x0]]
+    w = np.array[[w0]]
+    s = np.array[[s0]]
+    
     # 2. Início das iterações
-    # 2.1. Calculando:
-    # 2.1.1. mu[k] = sigmaMu(x[k]).T s[k]/n  (n é o tamanho de x = tamanho de c)
-    # 2.1.2. t[k] = b - Ax[k]
-    # 2.1.3. u[k] = c - A.Tw[k] - s[k]
-    # 2.1.4. v[k] = mu[k]e - XSe
-    # 2.1.5. p[k] = X^-1v[k]
+    while True:    
+        # 2.1. Calculando:
+        X = np.diag(x[k])
+        S = np.diag(s[k])
+        
+        # 2.1.1. mu[k] = sigmaMu(x[k]).T s[k]/n  (n é o tamanho de x = tamanho de c)
+        mu.append(
+            (sigmaMu@x[k].reshape(1,-1)@s[k].reshape(-1,1))/n
+        )
+        
+        # 2.1.2. t[k] = b - Ax[k]
+        t.append(
+            b - A@x[k]
+        )
+
+        # 2.1.3. u[k] = c - A.Tw[k] - s[k]
+        u.append(
+            c - A.T@w[k] - s[k]
+        )
+        
+        # 2.1.4. v[k] = mu[k]e - XSe
+        v.append(
+            mu[k]@e - X@S@e
+        )
+
+        # 2.1.5. p[k] = X^-1v[k]
+        p.append(
+            np.linalg.inv(X)@v[k]
+        )
+
+        # 2.2. Factibilidades
+        # 2.2.1. Primal: sigmaP = norm(t) / (norm(b) + 1)
+        sigmaP.append(
+            np.linalg.norm(t[k], ord=1)
+        )
+
+        # 2.2.2. Dual: sigmaD = norm(u) / (norm(c) + 1)
+        # 2.3. Comparar mu[k] e as factibilidades com o valor de epsilon
+        # 2.4. Calcular as direçoes dx dw e ds
+        # 2.5. Verificar a factibilidade do problema primal
+        # 2.6. Calcular os passos betaP e betaD
+        # 2.7. Atualização das soluções
+
+        k += 1
