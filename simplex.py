@@ -66,11 +66,11 @@ def simplex(A: list, b: list, c: list, x0: list):
 
     # 1.5. Colocando o tableau na forma preparada
     # para as colunas das variaveis basicas, verificar se são '1' na linha correspondente e '0' nas demais
-
+    isPrepared = True
     for row in tableau.itertuples():
         if row.Index is not 'z':
-            
-        pass
+            if row.Index == 
+            pass
             
 
 
@@ -96,7 +96,7 @@ def simplex(A: list, b: list, c: list, x0: list):
             # transforma a coluna da variavel que entrou em uma coluna da matriz identidade
             indexBaseIn = tableau.columns.get_loc(baseIn)
             for row in tableau.itertuples():
-                if row.Index != baseOut:
+                if row.Index is not baseOut:
                     if row[indexBaseIn + 1]:
                         multValue = -row[indexBaseIn + 1]
                         tableau.loc[row.Index] = tableau.loc[row.Index] + (multValue * tableau.loc[baseOut])
