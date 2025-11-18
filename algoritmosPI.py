@@ -1,4 +1,3 @@
-from ctypes.wintypes import DWORD
 from re import X
 import numpy as np
 
@@ -17,7 +16,7 @@ def PAE(A, b, c, epsilon = 1e-3, alfa = 0.95):
     Parâmetros
     ----------
     A: 
-        matriz relacionada às restrições
+        matriz relacionadSa às restrições
 
     b: 
         vetor de igualdade das restrições
