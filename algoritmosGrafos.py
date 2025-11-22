@@ -58,18 +58,26 @@ def dijkstra(mAdjacencia, origem = 0):
         # 2.4. buscar as colunas que possuem mais de um valor
         for indiceColuna, valor in enumerate(acm[menorDist,:]):
             mascaraColuna = acm[:,indiceColuna] != 0
-            
+            distNova = valor + dp[menorDist,DIST]
+
             if np.sum(mascaraColuna) > 1:
-                distAtual   = dp[indiceColuna,DIST]
-                distNova    = valor + dp[menorDist,DIST]
+                distAtual = dp[indiceColuna,DIST]                
 
                 if distNova < distAtual:
                     acm[:,indiceColuna] = 0
-                    acm[indiceColuna] = valor
+                    acm[menorDist,indiceColuna] = valor
 
-                    dp[indiceColuna,:] = distNova, indiceColuna[0]
+                    dp[indiceColuna,:] = distNova, menorDist+1
 
-            else:
-                dp[indiceColuna,:] = valor, menorDist
+                else:
+                    mascaraColuna[menorDist] = False
+                    melhorPrev = np.where(mascaraColuna)[0]
+                    melhorDist = acm[melhorPrev,indiceColuna]
+                    acm[:,indiceColuna] = 0
+                    acm[melhorPrev,indiceColuna] = melhorDist
+                    
+
+            elif valor:
+                dp[indiceColuna,:] = distNova, menorDist+1
 
     return acm

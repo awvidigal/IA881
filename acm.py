@@ -11,4 +11,5 @@ adjacencia = [
 ]
 
 acm = dijkstra(adjacencia)
+print(acm)
 
