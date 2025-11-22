@@ -4,7 +4,7 @@ INI_DIST = 10_000
 DIST = 0
 PREV = 1
 
-def dijkstra(mAdjacencia, origem):
+def dijkstra(mAdjacencia, origem = 0):
     '''
     Função que encontra a árvore de caminho mínimo utilizando o algoritmo de Dijkstra
 
@@ -22,32 +22,54 @@ def dijkstra(mAdjacencia, origem):
         Matriz de adjacência da árvore de caminho mínimo
     '''
 
-    qtdVertices = mAdjacencia.shape(0)
+    # 1. Inicialização
+    adjacencia = np.array(mAdjacencia)
+    qtdVertices = adjacencia.shape[0]
 
-    # criar vetor dist | prev
+    # 1.1. criar vetor dist | prev
     dp = np.zeros((qtdVertices,2))
     
-    # criar vetor acm
-    acm = np.zeros(mAdjacencia)
+    # 1.2. criar vetor de adjacencia da arvore de caminhos miinimos
+    acm = np.zeros(adjacencia.shape)
 
-    # inicializar vetor dp
+    # 1.3. criar vetor de registro dos vértices já incluídos
+    vertices = np.zeros(shape= qtdVertices, dtype= bool)
+
+    # 1.4. inicialização do vetor dp
     dp[:,DIST] = INI_DIST
-    dp[:,PREV('prev')] = np.nan
+    dp[:,PREV] = np.nan
 
-    dp[0,DIST] = 0
+    dp[origem,:] = 0
     
-    while(True):
-        # inserir vertice de menor dist
-        menorDist = np.argmin(dp[:,DIST])
+    # 2. Inicio da busca pela arvore de caminhos minimos
+    while not np.all(vertices):
+        # 2.1. identificar os vertices que fazem parte da franja
+        franja = dp[~vertices]
+        indicesFranja = np.where(~vertices)[0]
+
+        # 2.2. identificar vertice de menor dist fora da árvore
+        menorDist = np.argmin(franja[:,DIST])
+        menorDist = indicesFranja[menorDist]
+
+        # 2.3. inserir o vertice na arvore
+        vertices[menorDist] = True
+        acm[menorDist,:] = adjacencia[menorDist,:]
         
-        if (acm[menorDist,:] == 0).all():
-            acm[menorDist,:] = mAdjacencia[menorDist,:]
+        # 2.4. buscar as colunas que possuem mais de um valor
+        for indiceColuna, valor in enumerate(acm[menorDist,:]):
+            mascaraColuna = acm[:,indiceColuna] != 0
+            
+            if np.sum(mascaraColuna) > 1:
+                distAtual   = dp[indiceColuna,DIST]
+                distNova    = valor + dp[menorDist,DIST]
 
-            for arco in acm[menorDist,:]:
-                if arco:
-                    pass
+                if distNova < distAtual:
+                    acm[:,indiceColuna] = 0
+                    acm[indiceColuna] = valor
 
-    # relaxar o vértices ligados a ele
-    # atualizar acm
-    # verificar se todos os vértices já foram inseridos
-    pass
+                    dp[indiceColuna,:] = distNova, indiceColuna[0]
+
+            else:
+                dp[indiceColuna,:] = valor, menorDist
+
+    return acm
