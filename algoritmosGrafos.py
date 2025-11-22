@@ -29,7 +29,7 @@ def dijkstra(mAdjacencia, origem = 0):
     # 1.1. criar vetor dist | prev
     dp = np.zeros((qtdVertices,2))
     
-    # 1.2. criar vetor de adjacencia da arvore de caminhos miinimos
+    # 1.2. criar vetor de adjacencia da arvore de caminhos minimos
     acm = np.zeros(adjacencia.shape)
 
     # 1.3. criar vetor de registro dos vértices já incluídos
@@ -81,3 +81,35 @@ def dijkstra(mAdjacencia, origem = 0):
                 dp[indiceColuna,:] = distNova, menorDist+1
 
     return acm
+
+def bellmanFord(mAdjacencia, ordem = 0):
+    '''
+    Função que encontra a árvore de caminho mínimo utilizando o algoritmo de bellman-ford
+
+    Parâmetros:
+    -----------
+    mAdjacência:
+        Matriz de adjacência representando o grafo
+
+    ordem:
+        Ordem de relaxação das arestas
+
+    Return:
+    -------
+    acm:
+        Matriz de adjacência da árvore de caminho mínimo
+    '''
+
+    # 1. Inicialização
+    adjacencia = np.array(mAdjacencia)
+
+    # 1.1. criar vetor dist | prev
+    dp = np.zeros((adjacencia.shape[0],2))
+    dp[:,DIST] = INI_DIST
+    dp[:,PREV] = np.nan
+    dp[0,:] = 0
+
+    # 1.2. criar matriz de adjacencia da arvore de caminhos minimos
+    acm = adjacencia
+
+    # 2. Montagem da árvore de caminhos mínimos
