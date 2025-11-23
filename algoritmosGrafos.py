@@ -80,7 +80,7 @@ def dijkstra(mAdjacencia, origem = 0):
             elif valor:
                 dp[indiceColuna,:] = distNova, menorDist+1
 
-    return acm
+    return acm, dp
 
 def bellmanFord(mAdjacencia, ordem = 0):
     '''
@@ -110,6 +110,31 @@ def bellmanFord(mAdjacencia, ordem = 0):
     dp[0,:] = 0
 
     # 1.2. criar matriz de adjacencia da arvore de caminhos minimos
-    acm = adjacencia
+    acm = np.zeros(adjacencia.shape)
+
+    contador = 0 # contagem de iterações sem alteração
+    alteraDp = True
 
     # 2. Montagem da árvore de caminhos mínimos
+    while True:
+        if not alteraDp:
+            contador += 1
+            if contador == 2:
+                break
+
+        alteraDp = False
+        for indice, valor in np.ndenumerate(adjacencia):
+            
+            if valor:
+                novaDist = valor + dp[indice[0],DIST]
+                atualDist = dp[indice[1],DIST]
+                
+                if novaDist < atualDist:
+                    dp[indice[1],:] = novaDist, indice[0]+1
+                    alteraDp = True
+                    contador = 0
+
+    for indice, valor in enumerate(dp):
+        acm[int(valor[1]),indice] = adjacencia[int(valor[1]),indice]
+
+    return acm, dp
