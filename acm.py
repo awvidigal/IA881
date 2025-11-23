@@ -1,62 +1,40 @@
 import numpy as np
+import entradasGrafos as eg
 from algoritmosGrafos import dijkstra, bellmanFord 
+from entradasGrafos import mapaEUA, redeOtica
 
-# adjacencia = [
-#     [0,2,3,0,3,0],
-#     [0,0,2,4,0,0],
-#     [0,0,0,1,2,0],
-#     [0,0,0,0,0,1],
-#     [0,0,0,0,0,4],
-#     [0,0,0,0,0,0]
-# ]
+saidasRede = [7,14,21]
+saidasMapa = [10, 20, 30, 40, 50, 60, 70]
 
-# acm = dijkstra(adjacencia)
+print ('# ########################## DIJKSTRA #############################')
 
-
-# adjacencia = [
-#     [0,1,3,0,0,0],
-#     [0,0,1,3,2,0],
-#     [0,0,0,2,0,0],
-#     [0,0,0,0,-3,2],
-#     [0,0,0,0,0,3],
-#     [0,0,0,0,0,0]
-# ]
-
-# acm = bellmanFord(adjacencia)
-
-italianaOtica = [
-    [0,140,110,210,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,110,0,0,95,90,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,90,0,0,95,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,85,0,0,0,0,0,210,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,230,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,90,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,130,150,120,0,0,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,55,0,200,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,60,110,180,0,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,190,0,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,190,0,130,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,120,170,0,0,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,180,0,460,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,200,270,0,0,0,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,210,0,90,0,310,350],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,100,250,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,420,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,200,0,0],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,210],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,150],
-    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-]
-
-acm, dp = bellmanFord(italianaOtica)
-# acm, dp = dijkstra(italianaOtica)
-
-saidas = [7,14,21]
-
-print ('# ########################## BELLMAN-FORD #############################')
-# print ('# ########################## DIJKSTRA #############################')
-for valor in saidas:
-    print(f'Nó {valor}')
+acm, dp = dijkstra(redeOtica)
+print('\nRede Otica')
+print('____ _____\n')
+for valor in saidasRede:
+    print(f'Nó: {valor}')
     print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
 
-# print(acm)
+acm, dp = dijkstra(mapaEUA)
+print('\nMapa Rodoviario')
+print('____ __________\n')
+for valor in saidasMapa:
+    print(f'Nó: {valor}')
+    print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
+
+
+print ('# ########################## BELLMAN-FORD #############################')
+
+acm, dp = bellmanFord(redeOtica)
+print('\nRede Otica')
+print('____ _____\n')
+for valor in saidasRede:
+    print(f'Nó: {valor}')
+    print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
+
+acm, dp = dijkstra(mapaEUA)
+print('\nMapa Rodoviario')
+print('____ __________\n')
+for valor in saidasMapa:
+    print(f'Nó: {valor}')
+    print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
