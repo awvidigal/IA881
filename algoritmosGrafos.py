@@ -5,6 +5,17 @@ INI_DIST = 10_000
 DIST = 0
 PREV = 1
 
+matrizTesteAGM = np.array(
+    [
+        [0,1,3,0,0,0],
+        [1,0,1,3,2,0],
+        [3,1,0,2,0,0],
+        [0,3,2,0,-3,2],
+        [0,2,0,-3,0,3],
+        [0,0,0,2,3,0]
+    ]
+)
+
 def dijkstra(mAdjacencia, origem = 0):
     '''
     Função que encontra a árvore de caminho mínimo utilizando o algoritmo de Dijkstra
@@ -192,18 +203,34 @@ def prim(mAdjacencia, origem = 0):
     # 1. Inicializacao
     inicio = time.perf_counter()
     adjacencia = np.array(mAdjacencia)
-    vertices = np.zeros(adjacencia.shape[0])
-    franja = np.ones(adjacencia.shape[0])
-    agm = np.zeros(adjacencia.shape)
+    
+    vertices    = np.zeros((adjacencia.shape[0],2)) # indice representa o vertice, coluna zero representa o predecessor e coluna um representa o valor do arco
+    franja      = np.ones(adjacencia.shape[0])  # indice representa o vertice. True se estiver na franja, False c.c.
+    agm         = np.zeros(adjacencia.shape)    # matriz de adjacencia da arvore geradora minima
     
 
     franja[origem] = False
 
     # 2. Inicio do processo
-    while not np.all(vertices):
+    while np.count_nonzero(vertices) < vertices.shape - 1:
         # Olhar para a linha de cada item no vértice e selecionar o menor valor, filtrando-se as colunas que já estão na árvore
-        for indice, valor in enumerate(vertices):
+        
+        mascaraMatriz = franja # mascara para filtrar as colunas da matriz que não estão conectadas na árvore
+        matrizFiltrada = adjacencia[:, mascaraMatriz] # matriz sem as colunas que já estao na arvore
+        indicesAdjacencia = np.where(mascaraMatriz)[0]
+        menorArco = INI_DIST    # inicializa com um valor muito grande para manter sempre o menor valor na busca
+        
+        for indice, valor in enumerate(vertices[:,0]):
             if (valor) or (not valor and indice == origem):
+                # Busca do arco com menor valor que liga os vertices da árvore à franja
+                if np.min(matrizFiltrada[indice,:]) < menorArco:
+                    menorArco = np.argmin(matrizFiltrada[indice,:])
+                    noDestino = indicesAdjacencia[menorArco]
+                    noOrigem = indice
+
+            vertices[noDestino, 0] = noOrigem
+            vertices[noOrigem, 1] = menorArco
+                
                  
         # Adicionar a coluna correspondente no vetor vertices
         # Adicionar o arco na matriz agm
