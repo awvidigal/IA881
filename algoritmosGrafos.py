@@ -164,3 +164,50 @@ def bellmanFord(mAdjacencia, ordem = 0):
     final = time.perf_counter()
     tempoDeExecucao = final - inicio
     return acm, dp, tempoDeExecucao, iteracoes, relaxacoes
+
+def prim(mAdjacencia, origem = 0):
+    '''
+    Função que encontra a árvore geradora minima utilizando o algoritmo de prim
+
+    Parâmetros:
+    -----------
+    mAdjacência:
+        Matriz de adjacência representando o grafo
+
+    origem:
+        Nó inicial para o processo guloso
+
+    Return:
+    -------
+    agm:
+        Matriz de adjacência da árvore de caminho mínimo
+
+    tempoDeExecucao:
+        Tempo computacional para execução da arvore de caminhos mínimos
+
+    iteracoes:
+        Quantidade de iterações até a árvore
+    '''
+
+    # 1. Inicializacao
+    inicio = time.perf_counter()
+    adjacencia = np.array(mAdjacencia)
+    vertices = np.zeros(adjacencia.shape[0])
+    franja = np.ones(adjacencia.shape[0])
+    agm = np.zeros(adjacencia.shape)
+    
+
+    franja[origem] = False
+
+    # 2. Inicio do processo
+    while not np.all(vertices):
+        # Olhar para a linha de cada item no vértice e selecionar o menor valor, filtrando-se as colunas que já estão na árvore
+        for indice, valor in enumerate(vertices):
+            if (valor) or (not valor and indice == origem):
+                 
+        # Adicionar a coluna correspondente no vetor vertices
+        # Adicionar o arco na matriz agm
+    
+    # 2.1. Encontrar os arcos que ligam a arvore atual à franja
+    # 2.2. Selecionar o de menor custo
+    # 2.3. Inserir o novo nó na árvore

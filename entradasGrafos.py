@@ -16,10 +16,24 @@ redeOtica = pd.read_csv(
 redeOtica = redeOtica.fillna(0)
 redeOtica = redeOtica.astype(int)
 redeOtica = redeOtica.values
+redeOticaNaoOrientada = redeOtica
+
+for indice, valor in np.ndenumerate(redeOtica):
+    if valor:
+        redeOticaNaoOrientada[indice[1],indice[0]] = valor
+
+# simetria = np.array_equal(redeOticaNaoOrientada, redeOticaNaoOrientada.T)
 
 mapaEUA = mapaEUA.fillna(0)
 mapaEUA = mapaEUA.astype(int)
 mapaEUA = mapaEUA.values
+mapaEuaNaoOrientado = mapaEUA
+
+for indice, valor in np.ndenumerate(mapaEUA):
+    if valor:
+        mapaEuaNaoOrientado[indice[1],indice[0]] = valor
+
+# simetria = np.array_equal(mapaEuaNaoOrientado, mapaEuaNaoOrientado.T)
 
 
 # italianaOtica = [
