@@ -207,18 +207,20 @@ def prim(mAdjacencia, origem = 0):
     vertices    = np.zeros((adjacencia.shape[0],2)) # indice representa o vertice, coluna zero representa o predecessor e coluna um representa o valor do arco
     franja      = np.ones(adjacencia.shape[0])  # indice representa o vertice. True se estiver na franja, False c.c.
     agm         = np.zeros(adjacencia.shape)    # matriz de adjacencia da arvore geradora minima
+    iteracoes   = 0
     
 
     franja[origem] = False
 
     # 2. Inicio do processo
-    while np.count_nonzero(vertices) < vertices.shape - 1:
+    while np.count_nonzero(vertices[0]) < vertices.shape[0] - 1:
         # Olhar para a linha de cada item no vértice e selecionar o menor valor, filtrando-se as colunas que já estão na árvore
         
-        mascaraMatriz = franja # mascara para filtrar as colunas da matriz que não estão conectadas na árvore
+        mascaraMatriz = franja.astype(int) # mascara para filtrar as colunas da matriz que não estão conectadas na árvore
         matrizFiltrada = adjacencia[:, mascaraMatriz] # matriz sem as colunas que já estao na arvore
         indicesAdjacencia = np.where(mascaraMatriz)[0]
         menorArco = INI_DIST    # inicializa com um valor muito grande para manter sempre o menor valor na busca
+        iteracoes += 1
         
         for indice, valor in enumerate(vertices[:,0]):
             if (valor) or (not valor and indice == origem):
@@ -228,9 +230,16 @@ def prim(mAdjacencia, origem = 0):
                     noDestino = indicesAdjacencia[menorArco]
                     noOrigem = indice
 
-            vertices[noDestino, 0] = noOrigem
-            vertices[noOrigem, 1] = menorArco
+            vertices[noDestino, 0]  = noOrigem
+            vertices[noOrigem, 1]   = menorArco
+
+    for indice, valor in enumerate(vertices):
+        agm[indice,valor[0]] = valor[1]
+        agm[valor[0],indice] = valor[1]
                 
+    tempoDeExecucao = time.perf_counter() - inicio
+
+    return agm, tempoDeExecucao, iteracoes
                  
         # Adicionar a coluna correspondente no vetor vertices
         # Adicionar o arco na matriz agm
