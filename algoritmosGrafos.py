@@ -225,13 +225,17 @@ def prim(mAdjacencia, origem = 0):
         for indice, valor in enumerate(vertices[:,0]):
             if (valor) or (not valor and indice == origem):
                 # Busca do arco com menor valor que liga os vertices da árvore à franja
-                if np.min(matrizFiltrada[indice,:]) < menorArco:
+                linhaFiltrada = (matrizFiltrada[indice,:] != 0)
+                indicesLinhaFiltrada = np.where(matrizFiltrada[indice,:] != 0)[0]
+
+                if np.min(linhaFiltrada) < menorArco:
                     menorArco = np.argmin(matrizFiltrada[indice,:])
                     noDestino = indicesAdjacencia[menorArco]
                     noOrigem = indice
 
-            vertices[noDestino, 0]  = noOrigem
-            vertices[noOrigem, 1]   = menorArco
+        vertices[noDestino, 0]  = noOrigem
+        vertices[noOrigem, 1]   = menorArco
+            # atualizar franja
 
     for indice, valor in enumerate(vertices):
         agm[indice,valor[0]] = valor[1]
