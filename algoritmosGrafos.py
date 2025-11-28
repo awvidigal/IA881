@@ -297,13 +297,14 @@ def kruskal(mAdjacencia, origem = 0):
 
     arcos = []
 
+    # monta vetor de arcos com as colunas nó origem | nó destino | custo arco | flag arvore
     for indice,valor in np.ndenumerate(adjacencia):
         if valor and (indice[1] > indice[0]):
             arcos.append([indice[0], indice[1], valor, False])
 
     arcos = np.array(arcos)
     
-    # ordena os arcos em ordemc rescente de custo
+    # ordena os arcos em ordem crescente de custo
     indicesOrdenados = np.argsort(arcos[:,2].astype(int))
     arcos = arcos[indicesOrdenados]
 
@@ -313,7 +314,8 @@ def kruskal(mAdjacencia, origem = 0):
 
     tempoInicio = time.perf_counter()
 
-    while arvore[:,1].sum() != adjacencia.shape[0]:
+    # while arvore[:,1].sum() != adjacencia.shape[0]:
+    while sum(soma[1] for soma in arvore) != adjacencia.shape[0]:
         iteracoes += 1
         # identifica quais arcos nao ligam dois vertices de uma mesma arvore
         for indice,valor in enumerate(arcos):
