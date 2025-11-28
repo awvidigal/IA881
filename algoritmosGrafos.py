@@ -1,3 +1,4 @@
+from platform import java_ver
 import numpy as np
 import time
 
@@ -315,12 +316,22 @@ def kruskal(mAdjacencia, origem = 0):
     tempoInicio = time.perf_counter()
 
     # while arvore[:,1].sum() != adjacencia.shape[0]:
-    while sum(soma[1] for soma in arvore) != adjacencia.shape[0]:
+    # while sum(soma[1] for soma in arvore) != adjacencia.shape[0]:
+    while len(arvore) != adjacencia.shape[0] or sum(soma[1] for soma in arvore) != adjacencia.shape[0]:
         iteracoes += 1
+        nosArvore = [item[0] for item in arvore]
+
         # identifica quais arcos nao ligam dois vertices de uma mesma arvore
         for indice,valor in enumerate(arcos):
-            if ((valor[0] in arvore[0]) and (valor[1] in arvore[0])):
-                if arvore[arvore.index(valor[0]),1] == arvore[arvore.index(valor[1]),1]:
+            vertice1 = valor[0]
+            vertice2 = valor[1]
+            
+
+            if ((vertice1 in nosArvore) and (vertice2 in nosArvore)):
+                indiceVertice1 = nosArvore.index(vertice1)
+                indiceVertice2 = nosArvore.index(vertice2)
+
+                if arvore[indiceVertice1][1] == arvore[indiceVertice2][1]:
                     mascaraArcos[indice] = False
 
                 else:
@@ -348,30 +359,34 @@ def kruskal(mAdjacencia, origem = 0):
         # atualiza as posicoes dos vertices na arvore
         vertice1 = int(arcosFiltrado[indiceMenorArco,0])
         vertice2 = int(arcosFiltrado[indiceMenorArco,1])
-        nosArvore = [item[0] for item in arvore]
+        # nosArvore = [item[0] for item in arvore]
 
         # caso 1: os dois vertices fora da arvore
+        arvoresNumeradas = [item[1] for item in arvore]
         if (vertice1 not in nosArvore) and (vertice2 not in nosArvore):
             # identifica o maior indice de arvore existente
-            arvoreNova = min(arvore[1]) + 1
+            arvoreNova = max(arvoresNumeradas) + 1
             arvore.append([vertice1,arvoreNova])
             arvore.append([vertice2,arvoreNova])
 
         # caso 2: os dois vertices, cada um em uma arvore
         elif (vertice1 in nosArvore) and (vertice2 in nosArvore):
-            arvoreNova = min([arvore[nosArvore.index(vertice1),1],arvore[nosArvore.index(vertice2),1]])
-            arvore[nosArvore.index(vertice1),1] = arvoreNova
-            arvore[nosArvore.index(vertice2),1] = arvoreNova
+            arvoreNova = min([arvore[nosArvore.index(vertice1)][1], arvore[nosArvore.index(vertice2)][1]])
+            arvoreAntiga = max([arvore[nosArvore.index(vertice1)][1], arvore[nosArvore.index(vertice2)][1]])
+
+            for indice, valor in enumerate(arvore):
+                if valor[1] == arvoreAntiga:
+                    valor[1] = arvoreNova
 
         # caso 3: um vertice fora de qualquer arvore
         elif (vertice1 in nosArvore) or (vertice2 in nosArvore):
             if not ((vertice1 in nosArvore) and (vertice2 in nosArvore)):
                 if vertice1 not in nosArvore:
-                    arvoreNova = arvore[nosArvore.index(vertice2),1]
+                    arvoreNova = arvore[nosArvore.index(vertice2)][1]
                     arvore.append([vertice1,arvoreNova])
 
                 elif vertice2 not in nosArvore:
-                    arvoreNova = arvore[nosArvore.index(vertice1),1]
+                    arvoreNova = arvore[nosArvore.index(vertice1)][1]
                     arvore.append([vertice2,arvoreNova])
 
     tempoFim = time.perf_counter()
