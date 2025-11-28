@@ -186,55 +186,254 @@ def prim(mAdjacencia, origem = 0):
         Matriz de adjacência representando o grafo
 
     origem:
-        Nó inicial para o processo guloso
+        Nó inicial para o processo 
 
     Return:
     -------
-    agm:
-        Matriz de adjacência da árvore de caminho mínimo
+    arcos:
+        Vetor contendo os arcos contidos na arvore geradora minima
 
     tempoDeExecucao:
         Tempo computacional para execução da arvore de caminhos mínimos
 
     iteracoes:
         Quantidade de iterações até a árvore
+
+    custoTotal:
+        Custo da arvore geradora minima
     '''
 
-    # 1. Inicializacao
-    inicio = time.perf_counter()
+    # 1. Inicialização
+
+    adjacencia = np.array(mAdjacencia)
+    arvore = [origem]
+
+    arcos = []
+
+    for indice,valor in np.ndenumerate(adjacencia):
+        if valor and (indice[1] > indice[0]):
+            arcos.append([indice[0], indice[1], valor, False])
+
+    arcos = np.array(arcos)
+    mascaraArcos = np.zeros(arcos.shape[0])
+    custoTotal = 0
+    iteracoes = 0
+
+    tempoInicio = time.perf_counter()
+    while len(arvore) < adjacencia.shape[0]:
+        iteracoes += 1
+        # identifica quais arcos ligam um vertice da arvore com um vertice da franja
+        for indice,valor in enumerate(arcos):
+            if ((valor[0] in arvore) and (valor[1] in arvore)):
+                mascaraArcos[indice] = False
+
+            elif ((valor[0] not in arvore) and (valor[1] not in arvore)):
+                mascaraArcos[indice] = False
+
+            else:
+                mascaraArcos[indice] = True
+
+        # filtra o vetor de arcos deixando apenas os arcos identificados
+        arcosFiltrado = arcos[mascaraArcos.astype(bool)]
+        indicesFiltro = np.where(mascaraArcos)[0]
+
+        # encontra o arco de menor custo dentro do filtro
+        indiceMenorArco = np.argmin(arcosFiltrado[:,2])
+
+        # insere o arco na arvore
+        arcos[indicesFiltro[indiceMenorArco],3] = True
+
+        # atualiza o custo da arvore
+        custoTotal += arcosFiltrado[indiceMenorArco,2] 
+
+        # insere o vertice da franja na arvore
+        if arcosFiltrado[indiceMenorArco,0] not in arvore:
+            arvore.append(int(arcosFiltrado[indiceMenorArco,0]))
+
+        else:
+            arvore.append(int(arcosFiltrado[indiceMenorArco,1]))
+
+    tempoFim = time.perf_counter()
+    tempoDeExecucao = tempoFim - tempoInicio
+
+    filtro = arcos[:,-1].astype(bool)
+    arcos = arcos[filtro]
+
+    return arcos, custoTotal, iteracoes, tempoDeExecucao
+
+def kruskal(mAdjacencia, origem = 0):
+    '''
+    Função que encontra a árvore geradora minima utilizando o algoritmo de kruskal
+
+    Parâmetros:
+    -----------
+    mAdjacência:
+        Matriz de adjacência representando o grafo
+
+    origem:
+        Nó inicial para o processo 
+
+    Return:
+    -------
+    arcos:
+        Vetor contendo os arcos contidos na arvore geradora minima
+
+    tempoDeExecucao:
+        Tempo computacional para execução da arvore de caminhos mínimos
+
+    iteracoes:
+        Quantidade de iterações até a árvore
+
+    custoTotal:
+        Custo da arvore geradora minima
+    '''
+    # 1. Inicialização
     adjacencia = np.array(mAdjacencia)
     
-    vertices    = np.zeros((adjacencia.shape[0],2)) # indice representa o vertice, coluna zero representa o predecessor e coluna um representa o valor do arco
-    franja      = np.ones(adjacencia.shape[0])  # indice representa o vertice. True se estiver na franja, False c.c.
-    agm         = np.zeros(adjacencia.shape)    # matriz de adjacencia da arvore geradora minima
+    # vetor arvore indica o vertice e a qual arvore ele pertence. todos devem estar na arvore 1
+    arvore = [
+        [origem,1]
+    ]
+
+    arcos = []
+
+    for indice,valor in np.ndenumerate(adjacencia):
+        if valor and (indice[1] > indice[0]):
+            arcos.append([indice[0], indice[1], valor, False])
+
+    arcos = np.array(arcos)
+    
+    # ordena os arcos em ordemc rescente de custo
+    indicesOrdenados = np.argsort(arcos[:,2].astype(int))
+    arcos = arcos[indicesOrdenados]
+
+    mascaraArcos = np.zeros(arcos.shape[0])
+    custoTotal = 0
+    iteracoes = 0
+
+    tempoInicio = time.perf_counter()
+
+    while arvore[:,1].sum() != adjacencia.shape[0]:
+        iteracoes += 1
+        # identifica quais arcos nao ligam dois vertices de uma mesma arvore
+        for indice,valor in enumerate(arcos):
+            if ((valor[0] in arvore[0]) and (valor[1] in arvore[0])):
+                if arvore[arvore.index(valor[0]),1] == arvore[arvore.index(valor[1]),1]:
+                    mascaraArcos[indice] = False
+
+                else:
+                    mascaraArcos[indice] = True
+
+            # elif ((valor[0] not in arvore) and (valor[1] not in arvore)):
+            #     mascaraArcos[indice] = True
+
+            else:
+                mascaraArcos[indice] = True
+
+        # filtra o vetor de arcos deixando apenas os arcos identificados
+        arcosFiltrado = arcos[mascaraArcos.astype(bool)]
+        indicesFiltro = np.where(mascaraArcos)[0]
+
+        # encontra o arco de menor custo dentro do filtro
+        indiceMenorArco = np.argmin(arcosFiltrado[:,2])
+
+        # insere o arco na arvore
+        arcos[indicesFiltro[indiceMenorArco],3] = True
+
+        # atualiza o custo da arvore
+        custoTotal += arcosFiltrado[indiceMenorArco,2] 
+
+        # atualiza as posicoes dos vertices na arvore
+        vertice1 = int(arcosFiltrado[indiceMenorArco,0])
+        vertice2 = int(arcosFiltrado[indiceMenorArco,1])
+        nosArvore = [item[0] for item in arvore]
+
+        # caso 1: os dois vertices fora da arvore
+        if (vertice1 not in nosArvore) and (vertice2 not in nosArvore):
+            # identifica o maior indice de arvore existente
+            arvoreNova = min(arvore[1]) + 1
+            arvore.append([vertice1,arvoreNova])
+            arvore.append([vertice2,arvoreNova])
+
+        # caso 2: os dois vertices, cada um em uma arvore
+        elif (vertice1 in nosArvore) and (vertice2 in nosArvore):
+            arvoreNova = min([arvore[nosArvore.index(vertice1),1],arvore[nosArvore.index(vertice2),1]])
+            arvore[nosArvore.index(vertice1),1] = arvoreNova
+            arvore[nosArvore.index(vertice2),1] = arvoreNova
+
+        # caso 3: um vertice fora de qualquer arvore
+        elif (vertice1 in nosArvore) or (vertice2 in nosArvore):
+            if not ((vertice1 in nosArvore) and (vertice2 in nosArvore)):
+                if vertice1 not in nosArvore:
+                    arvoreNova = arvore[nosArvore.index(vertice2),1]
+                    arvore.append([vertice1,arvoreNova])
+
+                elif vertice2 not in nosArvore:
+                    arvoreNova = arvore[nosArvore.index(vertice1),1]
+                    arvore.append([vertice2,arvoreNova])
+
+    tempoFim = time.perf_counter()
+    tempoDeExecucao = tempoFim - tempoInicio
+
+    filtro = arcos[:,-1].astype(bool)
+    arcos = arcos[filtro]
+
+    return arcos, custoTotal, iteracoes, tempoDeExecucao
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # # 1. Inicializacao
+    # inicio = time.perf_counter()
+    # adjacencia = np.array(mAdjacencia)
+    
+    # vertices    = np.zeros((adjacencia.shape[0],2)) # indice representa o vertice, coluna zero representa o predecessor e coluna um representa o valor do arco
+    # franja      = np.ones(adjacencia.shape[0])  # indice representa o vertice. True se estiver na franja, False c.c.
+    # agm         = np.zeros(adjacencia.shape)    # matriz de adjacencia da arvore geradora minima
     
 
-    franja[origem] = False
+    # franja[origem] = False
 
-    # 2. Inicio do processo
-    while np.count_nonzero(vertices) < vertices.shape - 1:
-        # Olhar para a linha de cada item no vértice e selecionar o menor valor, filtrando-se as colunas que já estão na árvore
+    # # 2. Inicio do processo
+    # while np.count_nonzero(vertices) < vertices.shape - 1:
+    #     # Olhar para a linha de cada item no vértice e selecionar o menor valor, filtrando-se as colunas que já estão na árvore
         
-        mascaraMatriz = franja # mascara para filtrar as colunas da matriz que não estão conectadas na árvore
-        matrizFiltrada = adjacencia[:, mascaraMatriz] # matriz sem as colunas que já estao na arvore
-        indicesAdjacencia = np.where(mascaraMatriz)[0]
-        menorArco = INI_DIST    # inicializa com um valor muito grande para manter sempre o menor valor na busca
+    #     mascaraMatriz = franja # mascara para filtrar as colunas da matriz que não estão conectadas na árvore
+    #     matrizFiltrada = adjacencia[:, mascaraMatriz] # matriz sem as colunas que já estao na arvore
+    #     indicesAdjacencia = np.where(mascaraMatriz)[0]
+    #     menorArco = INI_DIST    # inicializa com um valor muito grande para manter sempre o menor valor na busca
         
-        for indice, valor in enumerate(vertices[:,0]):
-            if (valor) or (not valor and indice == origem):
-                # Busca do arco com menor valor que liga os vertices da árvore à franja
-                if np.min(matrizFiltrada[indice,:]) < menorArco:
-                    menorArco = np.argmin(matrizFiltrada[indice,:])
-                    noDestino = indicesAdjacencia[menorArco]
-                    noOrigem = indice
+    #     for indice, valor in enumerate(vertices[:,0]):
+    #         if (valor) or (not valor and indice == origem):
+    #             # Busca do arco com menor valor que liga os vertices da árvore à franja
+    #             if np.min(matrizFiltrada[indice,:]) < menorArco:
+    #                 menorArco = np.argmin(matrizFiltrada[indice,:])
+    #                 noDestino = indicesAdjacencia[menorArco]
+    #                 noOrigem = indice
 
-            vertices[noDestino, 0] = noOrigem
-            vertices[noOrigem, 1] = menorArco
+    #         vertices[noDestino, 0] = noOrigem
+    #         vertices[noOrigem, 1] = menorArco
                 
                  
-        # Adicionar a coluna correspondente no vetor vertices
-        # Adicionar o arco na matriz agm
+    #     # Adicionar a coluna correspondente no vetor vertices
+    #     # Adicionar o arco na matriz agm
     
-    # 2.1. Encontrar os arcos que ligam a arvore atual à franja
-    # 2.2. Selecionar o de menor custo
-    # 2.3. Inserir o novo nó na árvore
+    # # 2.1. Encontrar os arcos que ligam a arvore atual à franja
+    # # 2.2. Selecionar o de menor custo
+    # # 2.3. Inserir o novo nó na árvore
