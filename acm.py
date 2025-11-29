@@ -10,22 +10,22 @@ acm, dp, tempo, iteracoes, relaxacoes = dijkstra(redeOtica)
 print('\nRede Otica')
 print('____ _____\n')
 
-print(f'Tempo de execução: {tempo:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
-print(f'Quantidade de relaxações: {relaxacoes}\n')
+print(f'Tempo de execucao: {tempo:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
+print(f'Quantidade de relaxacoes: {relaxacoes}\n')
 for valor in saidasRede:
-    print(f'Nó: {valor}')
+    print(f'No: {valor}')
     print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
 
 acm, dp, tempo, iteracoes, relaxacoes = dijkstra(mapaEUA)
 print('\nMapa Rodoviario')
 print('____ __________\n')
 
-print(f'Tempo de execução: {tempo:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
-print(f'Quantidade de relaxações: {relaxacoes}\n')
+print(f'Tempo de execucao: {tempo:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
+print(f'Quantidade de relaxacoes: {relaxacoes}\n')
 for valor in saidasMapa:
-    print(f'Nó: {valor}')
+    print(f'No: {valor}')
     print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
 
 
@@ -35,20 +35,20 @@ acm, dp, tempo, iteracoes, relaxacoes = bellmanFord(redeOtica)
 print('\nRede Otica')
 print('____ _____\n')
 
-print(f'Tempo de execução: {tempo:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
-print(f'Quantidade de relaxações: {relaxacoes}\n')
+print(f'Tempo de execucao: {tempo:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
+print(f'Quantidade de relaxacoes: {relaxacoes}\n')
 for valor in saidasRede:
-    print(f'Nó: {valor}')
+    print(f'No: {valor}')
     print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')
 
 acm, dp, tempo, iteracoes, relaxacoes = dijkstra(mapaEUA)
 print('\nMapa Rodoviario')
 print('____ __________\n')
 
-print(f'Tempo de execução: {tempo:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
-print(f'Quantidade de relaxações: {relaxacoes}\n')
+print(f'Tempo de execucoo: {tempo:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
+print(f'Quantidade de relaxacoes: {relaxacoes}\n')
 for valor in saidasMapa:
-    print(f'Nó: {valor}')
+    print(f'No: {valor}')
     print(f'dist[{valor}]: {dp[valor-1,0]} | prev[{valor}]: {dp[valor-1,1]}\n')

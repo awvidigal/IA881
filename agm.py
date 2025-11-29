@@ -19,8 +19,8 @@ for indice,valor in enumerate(agm):
 print('\n')
 
 print(f'Custo total da arvore: {custoArvore}\n')
-print(f'Tempo de execução: {execucao:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
+print(f'Tempo de execucao: {execucao:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
 
 
 agm, custoArvore, iteracoes, execucao = prim(mapaEUA)
@@ -34,8 +34,8 @@ for indice,valor in enumerate(agm):
 print('\n')
 
 print(f'Custo total da arvore: {custoArvore}\n')
-print(f'Tempo de execução: {execucao:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
+print(f'Tempo de execucao: {execucao:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
 
 print('\n########################### KRUSKAL #############################')
 agm, custoArvore, iteracoes, execucao = kruskal(redeOtica)
@@ -49,8 +49,8 @@ for indice,valor in enumerate(agm):
 print('\n')
 
 print(f'Custo total da arvore: {custoArvore}\n')
-print(f'Tempo de execução: {execucao:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
+print(f'Tempo de execucao: {execucao:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
 
 
 agm, custoArvore, iteracoes, execucao = kruskal(mapaEUA)
@@ -64,6 +64,6 @@ for indice,valor in enumerate(agm):
 print('\n')
 
 print(f'Custo total da arvore: {custoArvore}\n')
-print(f'Tempo de execução: {execucao:.6f} segundos')
-print(f'Quantidade de iterações: {iteracoes}')
+print(f'Tempo de execucao: {execucao:.6f} segundos')
+print(f'Quantidade de iteracoes: {iteracoes}')
 
